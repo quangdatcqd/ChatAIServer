@@ -54,6 +54,7 @@ class PoeApi {
             });
     }
 
+
     async sendRequest(path, data) {
         try {
             const response = await this.client.post(`${this.BASE_URL}/poe_api/${path}`, data);

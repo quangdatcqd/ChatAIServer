@@ -4,6 +4,7 @@ const cors = require('cors')
 const appServer = express();
 const bodyParser = require("body-parser");
 const io = require("socket.io");
+const axios = require("axios")
 const socketServer = io(3002, {
     cors: {
         origin: '*',
@@ -11,10 +12,26 @@ const socketServer = io(3002, {
 })
 
 const WebSocket = require("ws");
-
+var sessionSocket;
+const getMinSeq = async () => {
+    const client = axios.create({
+        headers: {
+            Cookie: "p-b=8G9_rnH6ns3RoFOmvElcxA%3D%3D"
+        }
+    })
+    return client.get("https://poe.com/api/settings?channel=poe-chan59-8888-opkngsaduxjjwjqrwowx")
+        .then((response) => {
+            return response?.data?.tchannelData?.minSeq;
+        })
+        .catch((error) => {
+            console.log(error.message);
+            throw error;
+        });
+}
 var socket;
-const initSocket = () => {
-    var timeHost = "4516346308";
+const initSocket = async () => {
+
+    var timeHost = await getMinSeq();
     var idHost = Math.floor(1e6 * Math.random()) + 1;
     socket = new WebSocket(`wss://tch${String(idHost)}.tch.poe.com/up/chan59-8888/updates?min_seq=${timeHost}&channel=poe-chan59-8888-opkngsaduxjjwjqrwowx&hash=8151090595657988248`)
 
@@ -25,6 +42,7 @@ const initSocket = () => {
     });
 
     socket.on('message', function message(data) {
+        console.log(JSON.parse(data));
         socketServer.emit("message", JSON.parse(data))
     });
     socket.on("close", (code, reason) => {
@@ -34,6 +52,7 @@ const initSocket = () => {
 }
 
 initSocket();
+
 
 
 
